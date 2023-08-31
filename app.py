@@ -59,8 +59,13 @@ def intercept_request(url):
 
 def intercept_post_request(target_url):
     incoming_data = request.json
-    response = requests.post(target_url, json=incoming_data)
-    return response.text, response.status_code
+    response = requests.post(target_url, json=incoming_data, stream=True)
+
+    def generate():
+        for chunk in response.iter_content(chunk_size=8192):
+            yield chunk
+
+    return Response(generate(), content_type=response.headers['content-type'])
 
 
 def intercept_get_request(target_url):
