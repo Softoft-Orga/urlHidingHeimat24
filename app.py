@@ -3,16 +3,17 @@ from http import HTTPStatus
 
 import requests
 from bs4 import BeautifulSoup
-from flask import Flask, Response, request, send_from_directory
+from flask import Flask, Response, request
 
 from tag_replacers import HTTP_PROTOCOL, HTML_PARSER, TAG_REPLACER_LIST, PROXY_URL_STRING, \
-    undo_replacement
+    undo_replacement, replace_chatbase
 
 CHATBASE_ROOT_URL = "https://www.chatbase.co/"
 CHATBASE_ROOT_URL_NO_TRAILING_SLASH = "https://www.chatbase.co"
 CHATBASE_IFRAME_URL = CHATBASE_ROOT_URL + "chatbot-iframe/"
 
 app = Flask(__name__)
+
 
 def build_chatbot_iframe_url(chatbase_bot_id):
     return CHATBASE_IFRAME_URL + chatbase_bot_id
@@ -34,16 +35,9 @@ def fetch_and_rewrite(url):
         soup = BeautifulSoup(response.text, HTML_PARSER)
         for tag_replacer in TAG_REPLACER_LIST:
             tag_replacer.replace(soup)
-        new_script = soup.new_tag("script", src="/index.js")
-        soup.head.append(new_script)
         return str(soup)
     else:
         return None
-
-
-@app.route('/index.js')
-def serve_js_file():
-    return send_from_directory('.', 'index.js')
 
 
 @app.route('/chatbot/<chatbase_bot_id>')
@@ -55,42 +49,40 @@ def home(chatbase_bot_id):
         return "Error fetching content", HTTPStatus.NOT_FOUND
 
 
-@app.route(PROXY_URL_STRING, methods=['GET', 'POST'])
+def intercept_request(url):
+    url = change_url(url)
+    if request.method == 'POST':
+        return intercept_post_request(url)
+    else:
+        return intercept_get_request(url)
+
+
+def intercept_post_request(target_url):
+    incoming_data = request.json
+    response = requests.post(target_url, json=incoming_data)
+    return response.text, response.status_code
+
+
+def intercept_get_request(target_url):
+    r = requests.get(target_url)
+    if r.status_code == HTTPStatus.OK:
+        content_type = r.headers.get('content-type', mimetypes.guess_type(target_url)[0])
+        content = r.content
+        if "javascript" in content_type:
+            content = replace_chatbase(r.text)
+        return Response(content, content_type=content_type)
+    else:
+        return "Error fetching content", HTTPStatus.NOT_FOUND
+
+
+@app.route(PROXY_URL_STRING, methods=['GET'])
 def proxy():
-    url = undo_replacement(request.args.get('url'))
-    url = change_url(url)
-    if request.method == 'POST':
-        incoming_data = request.json
-        response = requests.post(url, json=incoming_data)
-        return response.text, response.status_code
-
-    print(url)
-    r = requests.get(url)
-    if r.status_code == HTTPStatus.OK:
-        content_type = r.headers.get('content-type', mimetypes.guess_type(url)[0])
-        content = r.content
-        return Response(content, content_type=content_type)
-    else:
-        return "Error fetching content", HTTPStatus.NOT_FOUND
+    return intercept_request(request.args.get('url'))
 
 
-@app.route('/<path:path>')
+@app.route('/<path:path>', methods=['GET', 'POST'])
 def catch_and_intercept(path):
-    url = path
-    url = change_url(url)
-    if request.method == 'POST':
-        incoming_data = request.json
-        response = requests.post(url, json=incoming_data)
-        return response.text, response.status_code
-
-    print(url)
-    r = requests.get(url)
-    if r.status_code == HTTPStatus.OK:
-        content_type = r.headers.get('content-type', mimetypes.guess_type(url)[0])
-        content = r.content
-        return Response(content, content_type=content_type)
-    else:
-        return "Error fetching content", HTTPStatus.NOT_FOUND
+    return intercept_request(path)
 
 
 if __name__ == '__main__':

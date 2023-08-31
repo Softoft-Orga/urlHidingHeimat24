@@ -17,7 +17,9 @@ HTTP_PROTOCOL = "http"
 
 
 def replace_chatbase(text):
-    return text.replace(REAL_CHATBASE, CHATBASE_REPLACEMENT)
+    text = text.replace(REAL_CHATBASE, CHATBASE_REPLACEMENT)
+    text = text.replace(REAL_CHATBASE.capitalize(), CHATBASE_REPLACEMENT)
+    return text
 
 
 def undo_replacement(text):
@@ -64,6 +66,16 @@ class HrefReplaceStrategy(ReplaceStrategy):
 
 
 @dataclass
+class AsReplaceStrategy(ReplaceStrategy):
+    def __post_init__(self):
+        self.html_tag_attribute = "as"
+
+    def replace(self, tag):
+        if tag["as"] == "image":
+            tag.decompose()
+
+
+@dataclass
 class TagReplacer:
     tag: str
     replace_strategies: List[ReplaceStrategy]
@@ -77,5 +89,6 @@ class TagReplacer:
 TAG_REPLACER_LIST = [
     TagReplacer(SCRIPT_HTML_TAG, [SrcReplaceStrategy()]),
     TagReplacer(LINK_HTML_TAG, [HrefReplaceStrategy()]),
+    TagReplacer(LINK_HTML_TAG, [AsReplaceStrategy()]),
     TagReplacer(IMG_HTML_TAG, [SrcReplaceStrategy(), SrcSetReplaceStrategy()])
 ]
