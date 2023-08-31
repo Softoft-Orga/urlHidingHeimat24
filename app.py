@@ -74,5 +74,24 @@ def proxy():
         return "Error fetching content", HTTPStatus.NOT_FOUND
 
 
+@app.route('/<path:path>')
+def catch_and_intercept(path):
+    url = path
+    url = change_url(url)
+    if request.method == 'POST':
+        incoming_data = request.json
+        response = requests.post(url, json=incoming_data)
+        return response.text, response.status_code
+
+    print(url)
+    r = requests.get(url)
+    if r.status_code == HTTPStatus.OK:
+        content_type = r.headers.get('content-type', mimetypes.guess_type(url)[0])
+        content = r.content
+        return Response(content, content_type=content_type)
+    else:
+        return "Error fetching content", HTTPStatus.NOT_FOUND
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
