@@ -86,9 +86,6 @@ class TagReplacer:
                 replace_strategy.replace(tag)
 
 
-TAG_REPLACER_LIST = [
-    TagReplacer(SCRIPT_HTML_TAG, [SrcReplaceStrategy()]),
-    TagReplacer(LINK_HTML_TAG, [HrefReplaceStrategy()]),
-    TagReplacer(LINK_HTML_TAG, [AsReplaceStrategy()]),
-    TagReplacer(IMG_HTML_TAG, [SrcReplaceStrategy(), SrcSetReplaceStrategy()])
-]
+TAG_REPLACER_LIST = [TagReplacer(SCRIPT_HTML_TAG, [SrcReplaceStrategy()]),
+    TagReplacer(LINK_HTML_TAG, [HrefReplaceStrategy()]), TagReplacer(LINK_HTML_TAG, [AsReplaceStrategy()]),
+    TagReplacer(IMG_HTML_TAG, [SrcReplaceStrategy(), SrcSetReplaceStrategy()])]

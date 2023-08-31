@@ -5,8 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 from flask import Flask, Response, request
 
-from tag_replacers import HTTP_PROTOCOL, HTML_PARSER, TAG_REPLACER_LIST, PROXY_URL_STRING, \
-    undo_replacement, replace_chatbase
+from tag_replacers import HTTP_PROTOCOL, HTML_PARSER, TAG_REPLACER_LIST, PROXY_URL_STRING, replace_chatbase
 
 CHATBASE_ROOT_URL = "https://www.chatbase.co/"
 CHATBASE_ROOT_URL_NO_TRAILING_SLASH = "https://www.chatbase.co"
