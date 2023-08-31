@@ -9,9 +9,13 @@ from tag_replacers import HTTP_PROTOCOL, HTML_PARSER, TAG_REPLACER_LIST, replace
     undo_replacement
 
 CHATBASE_ROOT_URL = "https://www.chatbase.co/"
-CHATBASE_URL = CHATBASE_ROOT_URL + "chatbot-iframe/Z7FWEuyvj1NI_k1GtlE0v"
+CHATBASE_IFRAME_URL = CHATBASE_ROOT_URL + "chatbot-iframe/"
 
 app = Flask(__name__)
+
+
+def build_chatbot_iframe_url(chatbase_bot_id):
+    return CHATBASE_IFRAME_URL + chatbase_bot_id
 
 
 def change_url(url):
@@ -31,9 +35,9 @@ def fetch_and_rewrite(url):
         return None
 
 
-@app.route('/')
-def home():
-    rewritten_html = fetch_and_rewrite(CHATBASE_URL)
+@app.route('/<chatbase_bot_id>')
+def home(chatbase_bot_id):
+    rewritten_html = fetch_and_rewrite(build_chatbot_iframe_url(chatbase_bot_id))
     if rewritten_html:
         return Response(rewritten_html, content_type='text/html; charset=utf-8')
     else:
@@ -47,11 +51,10 @@ def proxy():
     r = requests.get(url)
     if r.status_code == HTTPStatus.OK:
         content_type = r.headers.get('content-type', mimetypes.guess_type(url)[0])
+        content = r.content
         if 'javascript' in content_type:
-            js_content = replace_chatbase(r.text)
-            return Response(js_content, content_type=content_type)
-        else:
-            return Response(r.content, content_type=content_type)
+            content = replace_chatbase(r.text)
+        return Response(content, content_type=content_type)
     else:
         return "Error fetching content", HTTPStatus.NOT_FOUND
 
