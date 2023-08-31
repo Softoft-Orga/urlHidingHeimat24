@@ -61,7 +61,7 @@ def intercept_post_request(target_url):
     response = requests.post(target_url, json=incoming_data, stream=True)
 
     def generate():
-        for chunk in response.iter_content(chunk_size=8192):
+        for chunk in response.iter_content(chunk_size=2192):
             yield chunk
 
     return Response(generate(), content_type=response.headers['content-type'])
