@@ -1,92 +1,17 @@
 import mimetypes
 from http import HTTPStatus
-from typing import List
 
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, Response, request
 
+from tag_replacers import HTTP_PROTOCOL, HTML_PARSER, TAG_REPLACER_LIST, replace_chatbase, PROXY_URL_STRING, \
+    undo_replacement
+
 CHATBASE_ROOT_URL = "https://www.chatbase.co/"
 CHATBASE_URL = CHATBASE_ROOT_URL + "chatbot-iframe/Z7FWEuyvj1NI_k1GtlE0v"
 
 app = Flask(__name__)
-
-CHATBASE_REPLACEMENT = "heimat24-chat"
-REAL_CHATBASE = "chatbase"
-PROXY_URL_STRING = "/heimat24-chat"
-HTML_PARSER = "html.parser"
-SRC_HTML_ATTRIBUTE = "src"
-HREF_HTML_ATTRIBUTE = "href"
-SRCSET_HTML_ATTRIBUTE = "srcset"
-
-SCRIPT_HTML_TAG = "script"
-LINK_HTML_TAG = "link"
-IMG_HTML_TAG = "img"
-
-HTTP_PROTOCOL = "http"
-
-
-
-class ReplaceStrategy:
-    def __init__(self, html_tag_attribute):  # Fixed typo here
-        self.html_tag_attribute = html_tag_attribute
-
-    def replace(self, tag):
-        raise NotImplementedError
-
-
-class SrcReplaceStrategy(ReplaceStrategy):
-    def __init__(self):  # Fixed typo here
-        super().__init__(SRC_HTML_ATTRIBUTE)
-
-    def replace(self, tag):
-        tag[self.html_tag_attribute] = build_proxy_url(tag[self.html_tag_attribute])
-
-
-class SrcSetReplaceStrategy(ReplaceStrategy):
-    def __init__(self):  # Fixed typo here
-        super().__init__(SRCSET_HTML_ATTRIBUTE)
-
-    def replace(self, tag):
-        tag[self.html_tag_attribute] = ""
-
-
-class HrefReplaceStrategy(ReplaceStrategy):
-    def __init__(self):  # Fixed typo here
-        super().__init__(HREF_HTML_ATTRIBUTE)
-
-    def replace(self, tag):
-        tag[self.html_tag_attribute] = build_proxy_url(tag[self.html_tag_attribute])
-
-
-class TagReplacer:
-    def __init__(self, tag, replace_strategies: List[ReplaceStrategy]):
-        self.tag = tag
-        self.replace_strategies = replace_strategies  # Type hinting not needed here
-
-    def replace(self, soup):
-        for replace_strategy in self.replace_strategies:
-            for tag in soup.find_all(self.tag, {replace_strategy.html_tag_attribute: True}):
-                replace_strategy.replace(tag)
-
-
-TAG_REPLACER_LIST = [
-    TagReplacer(SCRIPT_HTML_TAG, [SrcReplaceStrategy()]),
-    TagReplacer(LINK_HTML_TAG, [HrefReplaceStrategy()]),
-    TagReplacer(IMG_HTML_TAG, [SrcReplaceStrategy(), SrcSetReplaceStrategy()])
-]
-
-
-def replace_chatbase(text):
-    return text.replace(REAL_CHATBASE, CHATBASE_REPLACEMENT)
-
-
-def undo_replacement(text):
-    return text.replace(CHATBASE_REPLACEMENT, REAL_CHATBASE)
-
-
-def build_proxy_url(url):
-    return f"{PROXY_URL_STRING}?url=" + replace_chatbase(url)
 
 
 def change_url(url):
