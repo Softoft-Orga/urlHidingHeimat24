@@ -14,6 +14,17 @@ CHATBASE_IFRAME_URL = CHATBASE_ROOT_URL + "chatbot-iframe/"
 app = Flask(__name__)
 
 
+def remove_power_by(soup):
+    target_form = soup.find('form')
+
+    # Find the target p element within the form
+    target_p = target_form.find('p', {'class': 'text-center'}) if target_form else None
+
+    # Remove the target p element
+    if target_p:
+        target_p.decompose()
+
+
 def build_chatbot_iframe_url(chatbase_bot_id):
     return CHATBASE_IFRAME_URL + chatbase_bot_id
 
@@ -32,6 +43,7 @@ def fetch_and_rewrite(url):
     response = requests.get(url)
     if response.status_code == HTTPStatus.OK:
         soup = BeautifulSoup(response.text, HTML_PARSER)
+        remove_power_by(soup)
         for tag_replacer in TAG_REPLACER_LIST:
             tag_replacer.replace(soup)
         return str(soup)
