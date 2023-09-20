@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import List
 
-CHATBASE_REPLACEMENT = "softoft"
-REAL_CHATBASE = "chatbase"
+CHATBASE_REPLACEMENT = "softoft.de"
+REAL_CHATBASE = "chatbase.co"
 PROXY_URL_STRING = "/softoft"
 HTML_PARSER = "html.parser"
 SRC_HTML_ATTRIBUTE = "src"
