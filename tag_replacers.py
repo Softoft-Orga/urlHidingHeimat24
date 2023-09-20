@@ -22,10 +22,6 @@ def replace_chatbase(text):
     return text
 
 
-def undo_replacement(text):
-    return text.replace(CHATBASE_REPLACEMENT, REAL_CHATBASE)
-
-
 def build_proxy_url(url):
     return f"{PROXY_URL_STRING}?url=" + replace_chatbase(url)
 

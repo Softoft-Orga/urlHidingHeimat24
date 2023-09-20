@@ -4,6 +4,8 @@ from http import HTTPStatus
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, Response, request
+from flask_caching import Cache
+from flask_cors import CORS
 
 from tag_replacers import HTTP_PROTOCOL, HTML_PARSER, TAG_REPLACER_LIST, PROXY_URL_STRING, replace_chatbase
 
@@ -12,17 +14,16 @@ CHATBASE_ROOT_URL_NO_TRAILING_SLASH = "https://www.chatbase.co"
 CHATBASE_IFRAME_URL = CHATBASE_ROOT_URL + "chatbot-iframe/"
 
 app = Flask(__name__)
+CORS(app, resources={
+    r"*": {"origins": ["http://localhost:*", "http://127.0.0.1:*", "https://softoft.de/*", "https://*.softoft.de/*"]}})
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
 
 def remove_power_by(soup):
     target_form = soup.find('form')
-
-    # Find the target p element within the form
-    target_p = target_form.find('p', {'class': 'text-center'}) if target_form else None
-
-    # Remove the target p element
-    if target_p:
-        target_p.decompose()
+    powered_by = target_form.find('p', {'class': 'text-center'}) if target_form else None
+    if powered_by:
+        powered_by.decompose()
 
 
 def build_chatbot_iframe_url(chatbase_bot_id):
@@ -51,6 +52,7 @@ def fetch_and_rewrite(url):
         return None
 
 
+@cache.memoize(timeout=3600)
 @app.route('/chatbot/<chatbase_bot_id>')
 def home(chatbase_bot_id):
     rewritten_html = fetch_and_rewrite(build_chatbot_iframe_url(chatbase_bot_id))
@@ -73,7 +75,7 @@ def intercept_post_request(target_url):
     response = requests.post(target_url, json=incoming_data, stream=True)
 
     def generate():
-        for chunk in response.iter_content(chunk_size=2192):
+        for chunk in response.iter_content(chunk_size=1192):
             yield chunk
 
     return Response(generate(), content_type=response.headers['content-type'])
@@ -91,11 +93,13 @@ def intercept_get_request(target_url):
         return "Error fetching content", HTTPStatus.NOT_FOUND
 
 
+@cache.memoize(timeout=3600)
 @app.route(PROXY_URL_STRING, methods=['GET'])
 def proxy():
     return intercept_request(request.args.get('url'))
 
 
+@cache.memoize(timeout=3600)
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def catch_and_intercept(path):
     return intercept_request(path)
