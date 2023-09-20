@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from typing import List
 
-CHATBASE_REPLACEMENT = "heimat24-chat"
+CHATBASE_REPLACEMENT = "softoft-chat"
 REAL_CHATBASE = "chatbase"
-PROXY_URL_STRING = "/heimat24-chat"
+PROXY_URL_STRING = "/softoft-chat"
 HTML_PARSER = "html.parser"
 SRC_HTML_ATTRIBUTE = "src"
 HREF_HTML_ATTRIBUTE = "href"
