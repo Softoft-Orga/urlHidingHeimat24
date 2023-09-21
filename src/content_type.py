@@ -14,7 +14,7 @@ class ContentType:
 
 class ContentTypeFinder:
     @staticmethod
-    def find(response: requests.Response) -> ContentType:
+    def find_type_for(response: requests.Response) -> ContentType:
         return ContentType(
             response.headers.get('content-type', mimetypes.guess_type(response.url)[0])
         )

@@ -1,14 +1,12 @@
 from dataclasses import dataclass
 from typing import List
 
-CHATBASE_REPLACEMENT = "softoft.de"
-REAL_CHATBASE = "chatbase.co"
-PROXY_URL_STRING = "/softoft"
+from src.config import REAL_CHATBASE, CHATBASE_REPLACEMENT, PROXY_URL_STRING, URL_PARAMETER
+
 HTML_PARSER = "html.parser"
-SRC_HTML_ATTRIBUTE = "src"
+SRC_HTML_ATTRIBUTE = ""
 HREF_HTML_ATTRIBUTE = "href"
 SRCSET_HTML_ATTRIBUTE = "srcset"
-
 SCRIPT_HTML_TAG = "script"
 LINK_HTML_TAG = "link"
 IMG_HTML_TAG = "img"
@@ -23,7 +21,7 @@ def replace_chatbase(text):
 
 
 def build_proxy_url(url):
-    return f"{PROXY_URL_STRING}?url=" + replace_chatbase(url)
+    return f"{PROXY_URL_STRING}?{URL_PARAMETER}=" + replace_chatbase(url)
 
 
 @dataclass
