@@ -2,3 +2,6 @@ CHATBASE_REPLACEMENT = "softoft.de"
 REAL_CHATBASE = "chatbase.co"
 PROXY_URL_STRING = "/softoft"
 URL_PARAMETER = "url"
+LOCALHOST_URL = "http://localhost"
+APP_PORT = 5000
+FULL_LOCALHOST_URL = f"{LOCALHOST_URL}:{APP_PORT}"
